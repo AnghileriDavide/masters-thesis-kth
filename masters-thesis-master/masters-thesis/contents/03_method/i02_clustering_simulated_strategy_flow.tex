@@ -1,0 +1,47 @@
+\resizebox{0.8\textwidth}{!}{%
+\begin{tikzpicture}[
+decision/.style={diamond, draw, text width=4.5em, text badly centered, node distance=3.5cm, inner sep=0pt},
+action/.style   ={rectangle, draw, text width=6em, text centered, rounded corners, minimum height=4em, minimum height=2em},
+block/.style   ={rectangle, draw, text width=6em, text centered, rounded corners, minimum height=4em, minimum height=2em},
+cloud/.style   ={draw, ellipse, minimum height=2em},
+line/.style    ={draw,-latex'},
+document/.style = {document, draw, text width=4em, text centered},
+node distance=0.5cm, 
+auto,]
+
+
+
+% Define the nodes
+\node[action]                            (dt)        {Tracking data};
+\node[action,   right=of dt]             (pf)        {Computing player features};
+\node[action,   right=of pf]             (tr)        {Training CNN};
+\node[action,   right=of tr]             (sf)        {Selecting player features};
+\node[block,    above right=of sf,]      (ag1)       {Agent 1};
+\node[block,     right=of sf,]      (ag2)       {Agent ... };
+\node[block,    below right=of sf,]      (ag3)       {Agent 125};
+\node[action,    right= of ag2]     (pr)        {Predict moves on validation set};
+\node[action,    right= of pr]     (css)        {Clustering simulated strategies};
+\node[block, above right = of css]      (nn_1)     {Model 1};
+\node[block,  right = of css]      (nn_2)     {Model ... };
+\node[block, below right = of css]       (nn_3)     {Model k};
+
+
+% % Connect the nodes
+\path[line] (dt) -- (pf);
+\path[line] (pf) -- (tr);
+\path[line] (tr) -- (sf);
+\path[line] (sf) -- (ag1);
+\path[line] (sf) -- (ag2);
+\path[line] (sf) -- (ag3);
+\path[line] (ag1) -- (pr);
+\path[line] (ag2) -- (pr);
+\path[line] (ag3) -- (pr);
+\path[line] (pr) -- (css);
+\path[line] (css) -- (nn_1);
+\path[line] (css) -- (nn_2);
+\path[line] (css) -- (nn_3);
+
+
+
+\end{tikzpicture}
+}

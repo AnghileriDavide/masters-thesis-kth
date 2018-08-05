@@ -1,0 +1,62 @@
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+decision/.style={diamond, draw, text width=4.5em, text badly centered, node distance=5cm, inner sep=0pt},
+action/.style   ={rectangle, draw, text width=6em, text centered, rounded corners, minimum height=4em, minimum height=2em},
+block/.style   ={rectangle, draw, text width=7em, text centered,minimum height=2em, node distance=1cm,},
+cloud/.style   ={draw, ellipse, minimum height=2em},
+scalar_op/.style   ={text width=6em, text centered, minimum height=2em, node distance=1cm,},
+half_scalar_op/.style   ={text width=1em, text centered, minimum height=2em, node distance=0.5cm,},
+line/.style    ={draw,-latex'},
+document/.style = {document, draw, text width=4em, text centered},
+node distance=0.5cm, 
+auto,]% Define the nodes
+\node [scalar_op] (i) {input};
+\node[block, right=of i, ] (c1) {3x3 conv,\\35 filters,\\ELU activation};
+\node[below=of c1, shift={(0,5mm)}]{x11};
+\node[block, right=of c1, ] (c12) {3x3 conv,\\144 filters,\\ELU activation};
+\node[block, right=of c12, ](avg){global average pooling};
+\node[block, right=of avg](sm){softmax};
+\node[scalar_op, right=of sm](out){output};
+%
+%\draw[decorate,decoration={mirror,brace,amplitude=5pt,raise=50pt},yshift=10pt,yshift=0pt,-]
+%  ([yshift=.5cm]c1.center) -- ([yshift=-.5cm]c11.center) node[black,midway,xshift=-70pt,rotate=90] (convlayers) {11 conv layers zero-padding to maintain dimensions};
+
+%
+%% Connect the nodes
+\path (i) edge [->] (c1)
+(c1) edge [->] node {} (c12)
+(c12) edge [->] node {} (avg)
+(avg) edge [->] (sm)% 
+(sm) edge [->] (out);% 
+
+%% draw cubes 
+\pic at ([yshift=3cm]i.center) {annotated cuboid={width=9, height=9, depth=101, scale=.04, units=}}(a);
+% 
+\pic at ([yshift=3cm, xshift=0.5cm]c1.center) {annotated cuboid={width=9, height=9, depth=35, scale=.04, units=}}(b);
+% \pic at ([xshift=3cm]inter.center) {annotated cuboid={width=9, height=9, depth=35, scale=.04, units=}}(c);
+%%  \pic at ([xshift=3cm]c11.center) {annotated cuboid={width=9, height=9, depth=35, scale=.04, units=}}(c);
+%
+% 
+\pic at ([yshift=3cm, yshift=-.5cm]c12.center) {annotated cuboid={width=9, height=9, depth=144, scale=.04, units=}};
+
+
+%
+%% draw vectors 
+%\path ([xshift=2.5cm]l.center) edge [below,|-|] node {144} ([xshift=6cm]l.center);
+%
+\path ([xshift=-0.5cm,yshift=1.7cm]avg.center) edge [below,|-|] node[shift={(3mm,0)}] {144} ([yshift=4.2cm, xshift=1.8cm]avg.center);
+\path ([xshift=-0.5cm,yshift=1.7cm]sm.center) edge [below,|-|] node[shift={(5mm,0)}] {144} ([yshift=4.2cm, xshift=1.8cm]sm.center);
+\path ([xshift=-0.5cm,yshift=1.7cm]out.center) edge [below,|-|] node[shift={(5mm,0)}] {144} ([yshift=4.2cm, xshift=1.8cm]out.center);
+
+ 
+% % Connect the cubes with arrows
+% \path ([xshift=3cm, yshift=-1cm]i.center) edge [right,->] ([xshift=3cm, yshift=1cm]c11.center);
+
+% \path ([xshift=3cm, yshift=-1cm]c11.center) edge [right,->] ([xshift=3cm,yshift=.2]c12.center);
+
+% \path ([xshift=3cm, yshift=-1.5cm]c12.center) edge [right,->] ([xshift=3cm,yshift=-13]avg.center);
+
+% \path ([xshift=3cm,]l.center) edge [right,->] ([xshift=3cm,yshift=0.2cm]sm.center);
+
+\end{tikzpicture}
+}

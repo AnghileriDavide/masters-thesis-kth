@@ -1,0 +1,349 @@
+\chapter{Results}
+\label{chap:results}
+% \section{Preliminary Data Analysis}
+
+\section{Player Modeling}
+We illustrate in this section the results of the two experimented approaches regarding the modeling of the players and the creation of the various agents that simulate different strategies.
+
+\subsection{Clustering Players Approach}
+We represented each player with a one dimensional array containing all his $2,500$ standardized success rates $\rho_i$ on the training levels. However, some players have missing SR for various reasons. The missing data points represent $5.16\%$ of the total number of players' \acs{sr}. In order to have comparable players' \acs{sr} distributions, we reconstructed the missing values using linear interpolation.
+Figure \ref{fig:player_distribution} shows two examples of standardized players' SR distributions over the training levels.
+
+\begin{figure}[h]
+  \centering
+  \subfloat[]{
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/clustering_players_images/one_player_sr_distribution.png}
+    \label{fig:player_distribution:a}
+    }
+  \subfloat[]{
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/clustering_players_images/one_player_sr_distribution_2.png}
+    \label{fig:player_distribution:b}
+    }
+    \caption{Two examples of standardized players' SR distributions over the levels in range [1, 2500]. 
+    }
+    \label{fig:player_distribution}
+\end{figure}
+\noindent
+In order to select the number of player clusters $k$, we used the elbow criterion. By looking at the plot of the SSE against several numbers of $k$, as illustrated in Figure \ref{fig:select_k}, we decided to group the players into six different clusters. 
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.6\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/clustering_players_images/select_k.png}
+    \caption{Elbow line used to select the number of clusters $k$. On the x-axis various numbers of $k$ while on the y-axis the SSE of the corresponding generated clusters. The plot shows that reasonable values of $k$ are between 3 and 8.}
+    \label{fig:select_k}
+\end{figure}
+Subsequently, we applied k-means to the players' SR distributions. Figure \ref{fig:k_means} shows the centroids of the generated clusters. By looking at the centroids, we can qualitatively describe the six different types of players represented by each cluster. Players in cluster 1 (orange) show a consistently high standardized SR and the cluster can therefore represents very good players. On the contrary, players in cluster 4 (purple), show a very low standardized SR distribution and the cluster can therefore represents less skilled players. 
+Players in cluster 0 (blue) show a decreasing standardized SR and the cluster can therefore represents players that encounter difficulties in progressing the game. On the contrary, players in cluster 3 (red), show an increasing standardized SR and the cluster can therefore represents players that learn good strategies over time. Finally, players in cluster 2 (green) show a standardized SR distribution close to the average as well as players in cluster 5 (brown), but with slightly less variance over the levels.
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.6\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/clustering_players_images/centroids_6_clusters.png}
+    \caption{Centroids of the 6 generated clusters. The x-axis represents the training levels while on the y-axis the standardized SR. Centroid 0, in blue, represents players with decreasing standardized SR, centroid 1, in orange, represents players with high standardized SR, centroid 2, in green, represents players with average standardized SR, centroid 3, in red, represents players with increasing standardized SR, centroid 4, in purple, represents players with low standardized SR and finally, centroid 5, in brown, represents players with average standardized SR but with less variance compared to centroid 3. [This image is better viewed in color].
+    }
+    \label{fig:k_means}
+\end{figure}
+Since k-means generates clusters with different sizes, in Table \ref{tab:clusters_features} we reported the number of players in each cluster. Note that cluster 1 contains only 2\% of the players, indicating the possibility that these players are simply outliers. To understand if the variability in the standardized players' SR distribution has an impact on the obtained clusters, we tried to cluster the levels into few buckets based on their difficulty and then represent each player with his average standardized SR distribution over the buckets. Since we obtained similar player clusters we decided to use the simplest approach avoiding to introduce a second clustering step on the levels.
+
+
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Player clusters}
+    \begin{tabular}{c l c S}
+    \toprule
+    Cluster \# & Color & \text{\# of Players} & \text{\% of Players} \\
+    \midrule
+    0 & blue & 3460 & 10.65  \\
+    1 & orange & 652 & 2.00 \\
+    2 & green & 7042 & 21.68  \\
+    3 & red & 2581 & 7.95 \\
+    4 & purple & 8958 & 27.58  \\
+    5 & brown & 9786 & 30.13 \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:clusters_features}
+\end{table}
+
+\subsection{Clustering Simulated Strategies Approach}
+
+In this approach we decided to add other two player features: the standardized mean amount of booster $\bar{\beta}$ and the number of levels played $l$ during the tracking period. Furthermore, instead of using the distribution of the \acs{sr} along the levels, we aggregated the values to have a single measure $\bar{\rho}$, that represents the overall skill of the player. Then, we let the network detect the relationship between these features and the performed move. After training the \acs{CNN}, we predicted on a validation set of 10,000 states with 125 different input player feature combinations. We generated all the possible combinations using the 5th, 25th, 50th, 75th and 95th percentiles of each player feature. The moves predicted by each agent are then considered as a sort of explicit representation of the simulated strategy of the agent. Clustering the simulated strategies we selected six agents that maximized the difference in the predicted moves. Results showed that the 25th and the 75th percentiles were never used by any of the obtained agents. This is reasonable since the player features are real numbers and extreme values lead to more diverse strategies. As a consequence we experimented repeating the clustering only with the 5th, 50th, and 95th percentiles of each player feature. Figure \ref{fig:hierarchical_clustering} shows the dendogram generated by hierarchical clustering. It shows that most of the agents have very similar predictions, however the six most different agents have a difference in the simulated strategies of at least 13\%. This means that by changing the player features the network predicts differently. Table \ref{tab:agents_generated_sim_strategies} shows the selected agents, their player features and a possible interpretation of the simulated types of players. The selected agents are the ones that on each of the six major clusters have a distance to their merged cluster that is the maximum compared to the other agents in the same cluster. As distance measure we used the hamming distance between the simulated strategies. The hamming distance represents the percentage of moves that the compared agents predict differently. We can observe that the two most diverse agents select different moves 31\% of the time.
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.6\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Sim_strategies/Plots/hierarchical.png}
+    \caption{Dendogram illustrating the differences in the simulated strategies of 27 different agents. The x-axis represents the 27 different generated agents with different combinations of the standardized mean success rate $\bar{\rho}$, the standardized mean amount of boosters $\bar{\beta}$ and the number of different levels played $l$. The y-axis represents the percentage of moves that the agents predict differently. 
+    }
+    % Each agent share the same network but uses different player features as input. The player features on the x-axis are abbreviated as follows: "bo" means the standardized mean amount of boosters $\bar{\beta}$, "di" means the standardized number of different levels played $l$ while "sk" means skill and represent the standardized mean success rate $\bar{\rho}$.
+    \label{fig:hierarchical_clustering}
+\end{figure}
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Agents generated by clustering simulated strategies} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Sim_strategies/agents_sim_strategies.tex}
+    \label{tab:agents_generated_sim_strategies}
+\end{table} 
+
+
+\section{CNNs Training and Prediction}
+
+Except for the input size, we used the same network architecture for the two experimented approaches. Regarding the clustering players approach, Table \ref{tab:Top1_training_test_accuracy} reports the top-1 accuracy, while Table \ref{tab:Top3_training_test_accuracy} reports the top-3 accuracy of each agent. 
+With bold we indicate the agent with the best accuracy on each data set. Each row represents a different data set. The first row represents the training accuracy of each agent on its own last mini-batch (consisting of 2048 examples). The remaining rows represent the test accuracy on different test data sets (each one consisting of 100,000 examples). By looking at the accuracy on the test data sets, we observed that in both the top-1 and top-3 accuracy, each agent better represents the players in its cluster compared to the baseline approach. This indicates that the \acs{CNN} model is able to learn different policies by changing the input data used during training. However, we observed that there is only a small difference between the prediction accuracy of the agents and the baseline. This is explained by the fact that we ran experiments with thousands of different players. As a consequence, even if we divide the data, each cluster contains examples from many different players and the \acs{CNN} learns the average strategy of the players on each cluster. Combining data of such a large number of players reduces the differences in the strategies learnt.
+\begin{table}[H]
+    \centering
+    \small
+    \caption{Clustering players. Top-1 training and test accuracy} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/gameplay_simulation/top1_training_test_accuracy_clustering_players.tex}
+    \label{tab:Top1_training_test_accuracy}
+\end{table}
+\begin{table}[H]
+    \centering
+    \small
+    \caption{Clustering players. Top-3 training and test accuracy} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/gameplay_simulation/top3_training_test_accuracy_clustering_players.tex}
+    \label{tab:Top3_training_test_accuracy}
+\end{table}
+Furthermore, we noted that the baseline accuracy is different on each data set.
+This confirms that players in different clusters select moves with different strategies and the baseline agent is not specialized to predict any of them. Furthermore, also the agents show different accuracy. A possible explanation is that some players select moves that are more predictable than other players. For example, players in cluster 2, select moves that are more easily predictable by the \acs{CNN}-based model than any other player cluster since the agent 2 performed better than any other agent in the top-1 accuracy.
+Nevertheless, all the agents showed a similar training progression and as an example, in Figure \ref{fig:nn_train} we illustrate the training process of two of them.  Finally, if we use the agents to predict on the same game boards, on average they disagree 30\% of the times, meaning that approximately one third of the times they select different moves between each other. This confirms once again that we learned different player strategies.
+Note that the prediction accuracy of the model does not directly relate to their performances in the game. 
+An agent can be very good in predicting the players that simulates but if the moves performed by that players are bad, the agent will perform poorly when playing the game. With a similar reasoning, even the improvement of the agents' accuracy compared to the baseline agent on each player cluster does not necessary mean that the agents are better than the baseline during gameplay. 
+\begin{figure}[h]     
+\centering
+    \subfloat[]{%Top-1 training accuracy
+    \input{masters-thesis-master/masters-thesis/contents/04_results/gameplay_simulation/training_acc_top1.tex}
+    \label{fig:train_acc_1}
+    }
+    \subfloat[]{%Top-3 training accuracy
+    \input{masters-thesis-master/masters-thesis/contents/04_results/gameplay_simulation/training_acc_top3.tex}
+    \label{fig:train_acc_3}
+    }
+    \subfloat[]{%Batch loss
+    \input{masters-thesis-master/masters-thesis/contents/04_results/gameplay_simulation/training_loss.tex}
+    \label{fig:train_batch_loss}
+    }
+    \caption{Visualization of the training process for agents 1 and 2. Figure (a) illustrates the top-1 training accuracy, Figure (b) shows the top-3 training accuracy while Figure (c) illustrates the batch loss. }
+    \label{fig:nn_train}
+\end{figure}
+
+Regarding the clustering simulated strategies approach, Table \ref{tab:top1_top3_training_test_accuracy} illustrates the top-1 and top-3 test and training accuracy. We reported the accuracy for both the network that uses the player features and the baseline. 
+% Results showed that there is no substantial difference between the experimented approach and the baseline in terms of prediction accuracy, indicating that adding the player features as input does not significantly improve the power of the predictive model. However, 
+The maximum disagreement between the generated agents is 31\%, meaning that the \acs{CNN} has learnt to play differently based on the values of the player features.
+
+Finally, we observed that the test accuracy in the clustering player approach is higher than the test accuracy in the clustering simulated strategies approach. A possible explanation is that in the first approach we restricted our focus to players that finished all the training levels and the moves performed by these players are more predictable than the ones performed by random players.  
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Clustering simulated strategies. Top-1 and top-3 training and test accuracy of the agent trained with player features and the baseline} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/gameplay_simulation/top1_top3_training_and_test_accuracy.tex}
+    \label{tab:top1_top3_training_test_accuracy}
+\end{table} 
+
+
+
+\section{Players' SR Prediction}
+Throughout this thesis, in order to not expose the actual values for privacy purposes, the players’ SR has been scaled by the difference between the maximum and the minimum value as described in Equation \ref{eq:scaled_sr}.
+% The scaling is applied equally to all the players' SR. 
+Note that the agents' SR have not been scaled and that on both the scaled players' SR and the agents' SR we applied a log transformation to obtain less skewed distributions.
+% Furthermore, applying the log transformation causes the log of the agents' SR that are zero to become minus infinite. 
+Furthermore, we used linear regression models to predict the log of the scaled players' SR when the agents' SR is greater than zero and the mean of the log of the scaled players' SR on training levels as a prediction when the agents' SR is zero. For comprehensibility, in the rest of the thesis we will refer to the log of the scaled players' SR as simply the players' SR and we will refer to the log of the agents' SR as simply the agents' SR. 
+
+\subsection{Clustering Players Approach}
+
+In order to validate our models we performed various tests.
+First, we tested that there exists a statistical relationship in the training data between each agent's \acs{sr} and the players' \acs{sr} that each agent simulates. Since each agent uses only a single predictor, in Table \ref{tab:reg_analysis} we reported its coefficient and the regression statistics. 
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Linear regression analysis between each agents' SR and its corresponding players' SR in the training data} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/regression_analysis.tex}
+    \label{tab:reg_analysis}
+\end{table} 
+We can observe that the p-values are all lower than 5\% meaning that is likely that changes in the predictor are related to changes in the response variable. In our case this means that changes in the agent's \acs{sr} are likely to be related to changes in the players' \acs{sr}. Note that each line in the table refers to a different linear model that correlates the agent's \acs{sr} with its corresponding players' \acs{sr}. 
+
+Since we used linear regression models to predict the players' \acs{sr} we also need to ensure that the following assumptions are valid:
+\begin{enumerate}
+    \item Linearity of the relationship between dependent and independent variables
+    \item Homoscedasticity of the errors
+    \item Statistical independence of the errors
+    \item Normality of the error distribution
+\end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \subfloat[]{%Players' SR vs predicted SR
+    \includegraphics[width=0.31\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_pred_obs.png}
+    \label{fig:train_example_residuals:train_pred_obs}
+    }
+    \subfloat[]{%Agent 4's SR vs residuals
+    \includegraphics[width=0.31\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_res_sr.png}
+    \label{fig:train_example_residuals:train_sr}
+    }
+  \subfloat[]{%Levels vs residuals
+    \includegraphics[width=0.31\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_res_levels.png}
+    \label{fig:train_example_residuals:train_levels}
+    }
+    
+  \subfloat[]{%Residuals frequency
+    \includegraphics[width=0.31\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_res_freq.png}
+    \label{fig:train_example_residuals:train_frequency}
+    }
+  \subfloat[]{%Normal probability plot
+    \includegraphics[width=0.315\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_qq.png}
+    \centering
+    \label{fig:train_example_residuals:train_qq}
+    }
+    \caption{Plots validating the linear regression assumptions in the training data for agent 4. Figure (a) illustrates the linear relationship between the players' SR and the predicted players' SR, the black dashed line is the diagonal. Figure (b) shows the agent's SR against the residual errors while Figure (c) shows the levels against the residuals. Figure (d) shows the histogram of the residual errors and finally, Figure (e) shows the normal probability plot of the residuals.}
+    \label{fig:train_example_residuals}
+\end{figure}
+\noindent
+As an example, we check these assumptions for the linear regression model trained with agent 4's \acs{sr}. The same tests are performed with all the remaining linear models and the plots are illustrated in Appendix \ref{assamp_val}. Note, that these analysis are performed on the training data before using the linear models for prediction.
+Plotting the agent 4's predicted \acs{sr} against the players' \acs{sr}, as illustrated in Figure \ref{fig:train_example_residuals:train_pred_obs}, we validated that exists a linear relationship between the dependent and the independent variables. Except for very high values of the agent's \acs{sr}, the data points are symmetrically distributed around the diagonal line. This implies that there is no major violation of the linear relationship assumption (1). 
+Figure \ref{fig:train_example_residuals:train_sr} illustrates the agent's \acs{sr} against the residual errors. The variance of the errors seems to be fairly constant along the independent variable, except for very high agent's \acs{sr} where it seems to be lower. For completeness, we also checked that the variance of the errors is constant along the dependent variable and we obtained similar results. However, the residual errors seem to be centered around zero only for values of the agent's \acs{sr} between -1 and -4. For very low or very high agent's \acs{sr} the errors are not centered around zero. More precisely, when the agent's \acs{sr} is very low or very high, the residual error is more likely to be positive, meaning that we underestimate levels that are very difficult or very easy for the agent. 
+% On the contrary, when the agent's \acs{sr} is high, the residual error is likely to be negative, meaning that we overestimate levels where the agent performs well.
+However, since the data points that violate the homoscedasticity assumption (2) are only a small number compared to the total number of training data points, we concluded that there is only a minor violation of this assumption.
+In Figure \ref{fig:train_example_residuals:train_sr}, we can also observe that consecutive errors are not correlated, therefore there is no violation of the statistical independence of the errors assumption (3). Figure \ref{fig:train_example_residuals:train_levels} shows that the errors are equally distributed along the levels as well.
+Figure \ref{fig:train_example_residuals:train_frequency} illustrates the histogram of the residual errors. We can notice that the histogram seems to represent a normal distribution. Finally, we checked against violation of the normal distribution of the errors assumption (4) by looking at the normal probability plot \cite{chambers_assessing_1983} that is illustrated in Figure \ref{fig:train_example_residuals:train_qq}. We can see that only a few points at both the tails of the theoretical quantiles do not follow the line.
+As a result, we can say that there is no violation of the normal distribution of the errors assumption.  
+
+Similar conclusions can be derived for the other linear models with only few exceptions. The linear models trained with agent 1's and agent 3's \acs{sr} showed a small correlation between the levels and the residual errors. This is not surprising since the players that they simulate have a non-constant average \acs{sr} in the training data. This implies that for these two specific agents, adding the levels as a feature of the linear model could improve the performances. Moreover, the linear model trained with agent 1's \acs{sr} violates the normality of the error distribution assumption. However, this agent represent only 2\% of the total number of players and we knew that it could represents outliers or anomalous players. Since agent 1 and 3 represent only 9\% of the players in total, for practical purposes, a lower performance of the linear models for these agents is tolerable. Finally, similar plots for validating the assumptions with the baseline agent are reported in Appendix \ref{assamp_val}.
+Subsequently, we use the fitted linear models to predict on test levels.
+In Figure \ref{fig:test_example_residuals} we observe that the assumption we validated in the training data for the linear models still hold in the test data.
+\begin{figure}[h]
+  \centering
+  \subfloat[]{%Players' SR against predicted SR
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_pred_obs_test.png}
+    \label{fig:test_example_residuals:test_pred_obs}
+    }
+    \subfloat[]{%Agent 4's SR against residuals
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_res_sr_test.png}
+    \label{fig:test_example_residuals:test_sr}
+    }
+    
+    \caption{Plots confirming the linear regression assumptions in the test data for the agent 4. Figure (a) illustrates the linear relationship between the players' SR and the predicted players' SR, the black dashed line is the diagonal. Figure (b) shows the agent's SR against the residual errors.}
+    \label{fig:test_example_residuals}
+\end{figure}
+\noindent
+More specifically, Figure \ref{fig:test_example_residuals:test_pred_obs} shows that there is a linear relationship between the agent's and the players' \acs{sr} in the test data while Figure \ref{fig:test_example_residuals:test_sr} shows that the residual errors are well distributed, not correlated and with a fairly constant variance.
+In Figure \ref{fig:example_predictions}, as an example, we illustrate the \acs{sr} predictions of the players in cluster 4 for both the baseline and agent 4. The comparisons between the other agents and the baseline while predicting the remaining player clusters are reported in Appendix \ref{predictions_comparison}.
+\begin{figure}[h]
+  \centering
+  \subfloat[]{%Agent 4's predictions
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agent4_test_prediction.png}
+    \label{fig:example_predictions:Agent 0's predictions}
+    }
+  \subfloat[]{%Baseline's predictions trained with all players
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/baseline4_test_prediction.png}
+    \label{fig:example_predictions:Baseline agent's predictions}
+    }
+    
+    \subfloat[]{%Baseline's predictions trained with players in cluster 4
+    \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/baseline4_test_pred_in_4.png}
+    \label{fig:example_predictions:Baseline agent's predictions in 4}
+    }
+    \caption{Agent 4's and baseline's predictions for the success rate of players in cluster 4. Figure (a) illustrates the agent 4's predictions while Figures (b) and (c) show the predictions obtained from the baseline's SR. The baseline predictions in (b) are obtained training the baseline linear model to predict the average \acs{sr} of the players. The baseline predictions in (c) are obtained training the baseline linear model to predict the \acs{sr} of the players in cluster 4. In each graph, the black line shows the linear regression model while the red dashed line shows the ideal linear model. In the top left corner we illustrate the $R^2$ measure of the fitted regression model. In the bottom right corner of the graph we report the equation of the line obtained by the linear regression model.}
+    \label{fig:example_predictions}
+\end{figure}
+We observe that the linear model fitted with the agent 4's \acs{sr} significantly outperforms the baseline in predicting the \acs{sr} of players in cluster 4. Moreover, we observe that the baseline approach systematically overestimates these players. This is explained by the fact that cluster 4 represents players which have a \acs{sr} distribution that is consistently under the average value. Similar reasoning can be done looking at the others agents' predictions compared to the baseline. Furthermore, Figure \ref{fig:example_predictions:Baseline agent's predictions in 4} shows that even if we train the baseline agent to predict the \acs{sr} of players in cluster 4 instead of predicting the average \acs{sr} between all the players, the prediction performances remain lower than those of agent 4. This confirms that the \acs{sr} of players in cluster 4 are more correlated to the \acs{sr} of agent 4 rather then the \acs{sr} of the baseline agent. However, if we train the baseline agent to predict the \acs{sr} of players in cluster 4 the difference with our approach in terms of \acs{sr} predictions is small. This suggest that after clustering the players, using only the baseline agent to predict each player cluster \acs{sr} could be a trade-off between computational requirements and prediction accuracy. 
+
+Table \ref{tab:prediction_analysis} reports the MAE, MSE and adjusted R-squared computed on each player cluster. Note that on each row the "agent" columns describe a different agent, the one trained with the corresponding player cluster. For example, we never use agent 1 to predict the \acs{sr} of players in different clusters from cluster 1. On the contrary, the baseline columns indicate always the same baseline agent used to predict the \acs{sr} of players in all the defined clusters. We can observe that each linear model, compared to the baseline, better represents, in terms of \acs{sr} predictions on test levels, the players that the agent simulates. Note that the adjusted R-squared is 1 in the ideal case where the line perfectly fits all the data points but it does not have a lower bound. This means that as the linear model get worse, the adjusted R-squared value can become negative and it can decrease indefinitely.    
+\begin{table}[H]
+    \centering
+    \small
+    \caption{Analysis of the linear regression models while predicting on test data sets and comparison with the baseline agent} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/prediction_analysis.tex}
+    \label{tab:prediction_analysis}
+\end{table} 
+
+A boxplot illustrating the residual errors of the agents and the baseline on each player cluster is shown in Figure \ref{fig:boxplot}. It shows that the agents have an error closer to zero and a lower variance, confirming that they can better predict the players' \acs{sr} that they represent compared to the baseline.
+\begin{figure}[h!]       
+    \centering
+    \includegraphics[width=0.6\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/boxplot.png}
+    \caption{Boxplot comparing agent's and baseline's residual errors. For each player cluster illustrates the distribution of the residual errors of the agent representing the cluster, in blue on the left, and the baseline approach, in red on the right.}
+    \label{fig:boxplot}
+\end{figure}
+
+Finally, in order to compare our approach with the baseline approach and answer our research question we combined the agents' predictions to obtain a single measure. The linear combination of the six predictions, as defined in \ref{combination}, is based on the percentage of players that each agent represents. Table \ref{tab:prediction_performance_linear} reports the evaluation of our approach compared to the baseline. The clustering players approach reduced the prediction MAE from 0.30 to 0.26 with an improvement of 13\% and reduced the prediction MSE from 0.13 to 0.10 with an improvement of 23\%. In the table we also reported the 95\% confidence interval of the mean. We ran a paired t-test to check that the mean difference between the absolute errors per each test level is different from zero. We decided to use a paired t-test because the two approaches are tested on the same levels and we want to remove the variability in the errors that has not been completely removed by the linear regression models due to the minor violation of the homoscedasticity assumption. The paired t-test increases the statistical power of our analysis because it removes the between-level variability. If a level is too difficult, the difference between the approaches does not have to be large even if the error is big. As a result, we obtained a two-tailed p-value of 0.04\%. Since it is lower than 5\% we rejected the hypothesis of no difference between the absolute errors of the two approaches. For completeness, we ran a two-sided t-test to check that the two approaches have a statistically different \acs{MAE}. Since we obtained a p-value lower than 5\%, we can reject the null hypothesis of identical average scores. Similar results were obtained for the \acs{MSE}. As a consequence, we have strong evidence that the new approach outperforms the baseline approach. The MAE is the metric that for practical purposes we consider most important between the two. We prefer to have few wrong predictions and frequent accurate predictions rather than constantly fairly accurate predictions. This because human testing is still worth when concerning subjective or qualitative measurements like fun or player experience and if applied in conjunction with our approach, it can easily detect highly wrong predictions.
+\begin{table}[h!]
+    \centering
+    \small
+    \caption{Clustering players. Overall linear regression performance measures} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/linear_regression_performance.tex}
+    \label{tab:prediction_performance_linear}
+\end{table} 
+
+% Furthermore, Figure \ref{fig:abs_err} illustrates the distribution of the absolute errors for the baseline and the proposed approach. We observe how with our approach the errors are more shifted toward zero compared to the baseline approach. 
+% Finally, also the standard deviation of the absolute errors is reduced. The standard deviation is $0.21$ for the baseline approach and $0.18$ for the clustering players approach.
+% \begin{figure}[h]
+%   \centering
+%   \subfloat[]{
+%     \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/agents_res_abs_err.png}
+%     \label{fig:example_predictions:Agents abs err}
+%     }
+%   \subfloat[]{
+%     \includegraphics[width=0.45\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/baseline_res_abs_err.png}
+%     \label{fig:example_predictions:Baseline abs err}
+%     }
+    
+%     \caption{Absolute error distributions. Figure (a) illustrates the distribution of the absolute errors for the clustering players approach while Figure (b) illustrates the distribution of the absolute errors for the baseline approach.}
+%     \label{fig:abs_err}
+% \end{figure}
+
+
+\subsection*{Predictions using the mean of the players’ success rate}
+Regarding data points where the agents or the baseline have a zero \acs{sr}, a prediction is formed using the mean of the players' \acs{sr} where the corresponding agent's or baseline's \acs{sr} are zero in the training data. This means that for each agent, the predictions in the test levels where the agent failed are computed by looking at the mean of the players' \acs{sr} in the training levels where the corresponding agent failed as well. In Table \ref{tab:prediction_performance_tot} we reported both the performance in the linear part and the overall prediction performance. We can say that our approach reduced the MAE by 7\% and the MSE by 4\% when considering both the linear and the mean predictions. Furthermore, we reported the 95\% confidence interval of the measurements. Note that the improvement of our approach is lower when considering the mean predictions as when considering only the linear part.
+Since the agents and the baseline failed in different levels, we need to consider that the number of levels predicted with the mean is different between each agent and the baseline. On average the six agents predict 62 levels using the mean while the baseline predicts 69 levels with the mean.
+We ran a paired t-test to check that the within pair difference obtained is larger than would be expected to have occurred by chance. Since we obtained a two-tailed p-value greater than 5\% we cannot reject the null hypothesis when considering also the predictions realized with the mean \acs{sr}.
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Clustering players. Regression performance measures} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/prediction_performance.tex}
+    \label{tab:prediction_performance_tot}
+\end{table} 
+
+Figure \ref{fig:boxplot_tot} illustrates the distribution of the \acs{sr} for the failed levels of each agent as well as the mean used to predict in these cases. The players' \acs{sr} in the failed levels tend to be lower compared to the succeeded levels. This is desirable since we expect levels where the agents failed to be difficult for the players as well. However, the variance is high and as a consequence the mean prediction performs poorly. Furthermore, since the failed levels represent on average 18\% of the test levels, their impact on the regression performances is considerable. Finally, we can observe that the predicted mean in the baseline approach is closer to the true mean compared to other agents. This is due to the fact that the baseline represents a greater number of players and their average \acs{sr} is less variable between training and test levels. On the contrary, the average \acs{sr} on failed levels for some agents, especially agents 1, 2 and 3, changes a lot between training and test levels. This was expected by looking at the \acs{sr} distribution in Figure \ref{fig:k_means} and it can explain why adding these levels reduces the performances of our approach.
+
+\begin{figure}[h!]       
+    \centering
+    \includegraphics[width=0.6\textwidth]{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Clustering/plots/boxplot_zeros.png}
+    \caption{Data points and boxplots of levels predicted with the mean. The red triangles show the mean prediction of each agent while the blue crosses indicated the true mean.}
+     \label{fig:boxplot_tot}
+\end{figure}
+
+\subsection{Clustering Simulated Strategies Approach}
+
+In this approach, since we cannot accurately determine how many players each agent simulates, instead of combining the predictions of six different linear models, we use a single linear regression model with six predictors.
+Another difference with the previous approach is that we no longer need to eliminate levels that drastically changed since both the players' \acs{sr} and the agents' \acs{sr} are computed using the most recent and identical version of the levels.
+
+As we did for the clustering players approach, we validated the four linear regression assumptions in the training data and we reported the plots in Appendix \ref{assamp_val_sim_strategies}. We can observe that the assumptions hold with only a minor violation of the homoscedasticity of the errors assumption. 
+Subsequently, we used the linear model fitted with the six agents' \acs{sr} and the one fitted with the baseline's \acs{sr} to predict on test levels. Table \ref{tab:prediction_performance_linear_sim} reports the evaluation of our approach compared to the baseline. The clustering simulated strategies approach reduced the prediction MAE from 0.30 to 0.26 with an improvement of 13\%, the prediction MSE from 0.17 to 0.13 with an improvement of 24\% and finally improved the adjusted R-squared from 0.51 to 0.62 with an improvement of 22\%. 
+We ran a paired t-test to check that the per-level mean difference of the absolute errors between the two approaches is different from zero with a significance level of 5\%. We obtained a two-tailed p-value of 0.08\% and rejected the null hypothesis concluding that the mean difference between the two approaches is statistically significantly different to zero.
+For completeness, we ran a two-sided t-test to check that the two approaches have a statistically different \acs{MAE}. We obtained a two-tailed p-value lower than 5\% and we rejected the null hypothesis of identical average scores. Furthermore, since in this approach we compared a linear model with six predictors with a linear model with a single predictor, the most important metric is the adjusted R-squared because it takes into account the number of predictors. More precisely, the adjusted R-squared decreases if we add a predictor that improves the model less than what would be improved by chance.  
+% Finally, also the standard deviation of the absolute errors is reduced, from $0.25$ for the baseline approach to $0.27$ for the proposed approach.
+\begin{table}[h!]
+    \centering
+    \small
+    \caption{Clustering simulated strategies. Overall linear regression performances} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Sim_strategies/linear_regression_performance.tex}
+    \label{tab:prediction_performance_linear_sim}
+\end{table} 
+
+
+\subsection*{Predictions using the mean of the players’ success rate}
+
+The data points where any of the agents or the baseline failed are predicted using the mean of the players' \acs{sr} in the training levels where the corresponding agents or baseline failed as well.
+In Table \ref{tab:prediction_performance_tot_sim} we reported the prediction performances in the linear part and the overall performances. The six agents predicted 193 levels using the mean since whenever one of the agents failed a mean prediction is applied, on the contrary, the baseline predicted only 101 levels using the mean players' \acs{sr}. Considering all predictions, the clustering simulated strategies approach achieved a 8\% lower MAE, a 16\% lower MSE and a 19\% higher adjusted R-squared than the baseline approach. However, we ran a paired t-test and we obtained a two-tailed p-value greater than 5\%. As a consequence, we cannot reject the null hypothesis of identical average scores when considering also the predictions realized with the mean \acs{sr} with a significant level of 0.05.
+
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Clustering simulated strategies. Regression performance measures} 
+    \input{masters-thesis-master/masters-thesis/contents/04_results/Player_Modeling/Sim_strategies/prediction_performance.tex}
+    \label{tab:prediction_performance_tot_sim}
+\end{table} 
+
+Note that the performance metrics reported in this thesis are computed on the scaled and log-transformed values. Reverting the \acs{sr} predictions and computing the errors on the original \acs{sr} values only led to different absolute values yet similar improvements between the proposed approaches and the baseline.
+
+
+
+
+
+

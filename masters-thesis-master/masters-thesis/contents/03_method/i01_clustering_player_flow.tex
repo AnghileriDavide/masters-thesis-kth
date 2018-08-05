@@ -1,0 +1,45 @@
+\resizebox{0.8\textwidth}{!}{%
+\begin{tikzpicture}[
+decision/.style={diamond, draw, text width=4.5em, text badly centered, node distance=3.5cm, inner sep=0pt},
+action/.style   ={rectangle, draw, text width=6em, text centered, rounded corners, minimum height=4em, minimum height=2em},
+block/.style   ={rectangle, draw, text width=6em, text centered, rounded corners, minimum height=4em, minimum height=2em},
+cloud/.style   ={draw, ellipse, minimum height=2em},
+line/.style    ={draw,-latex'},
+document/.style = {document, draw, text width=4em, text centered},
+node distance=0.5cm, 
+auto,]
+
+
+
+% Define the nodes
+\node[action]                            (dt)        {Tracking data};
+\node[action,   right=of dt]             (pp)        {Computing player performance features};
+\node[action,   right=of pp]             (cp)        {Clustering players};
+\node[action,   right=of cp]             (cd)        {Creating training data sets};
+\node[block,    above right=of cd,]      (dpc1)       {Data set from players in cluster 1};
+\node[block,     right=of cd,]      (dpc2)       {Data set from players in cluster ... };
+\node[block,    below right=of cd,]      (dpc3)       {Data set from players in cluster k};
+\node[action,    right= of dpc2]     (tr)        {Training CNNs};
+\node[block, above right = of tr]      (nn_1)     {Model trained on cluster 1};
+\node[block,  right = of tr]      (nn_2)     {Model trained on cluster ... };
+\node[block, below right = of tr]       (nn_3)     {Model trained on cluster k};
+
+
+% % Connect the nodes
+\path[line] (dt) -- (pp);
+\path[line] (pp) -- (cp);
+\path[line] (cp) -- (cd);
+\path[line] (cd) -- (dpc1);
+\path[line] (cd) -- (dpc2);
+\path[line] (cd) -- (dpc3);
+\path[line] (dpc1) -- (tr);
+\path[line] (dpc2) -- (tr);
+\path[line] (dpc3) -- (tr);
+\path[line] (tr) -- (nn_1);
+\path[line] (tr) -- (nn_2);
+\path[line] (tr) -- (nn_3);
+
+
+
+\end{tikzpicture}
+}

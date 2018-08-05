@@ -1,0 +1,48 @@
+\begin{tikzpicture}[]
+
+
+
+
+\begin{axis}[
+xtick=\empty,
+axis lines=middle,
+xlabel={$\Delta \text{\ac{sr}}$ Rank},
+ylabel={$\Delta \text{\ac{sr}}$},
+height=5cm,
+width=\textwidth - 2cm,
+x label style={anchor=north},
+legend style={at={(0.5,-0.1)},anchor=north},
+legend style={font=\tiny},
+label style={font=\tiny},
+tick label style={font=\tiny}
+]   
+
+        
+    \addplot+[
+        red,
+        thick,
+        solid,
+        mark=None
+    ]
+    table [x=Cluster_1, y=Cluster_1, col sep = comma] {contents/04_results/Player_Modeling/Data/cluster_centroids_8.csv};
+    
+        
+    % \addplot+[
+    %     black,
+    %     thick,
+    %     densely dotted,    
+    %     mark=None
+    % ]
+    % table [x=Cluster_1, y=Cluster_2, col sep = comma] {contents/04_results/Player_Modeling/Data/cluster_centroids_8.csv};
+    
+    
+
+    
+
+    \legend{1, 2, 3}
+    
+        
+    
+\end{axis}
+
+\end{tikzpicture}

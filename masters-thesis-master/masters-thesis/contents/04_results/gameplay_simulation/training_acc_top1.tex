@@ -1,0 +1,29 @@
+\resizebox{0.30\textwidth}{!}{%
+\begin{tikzpicture}[]
+
+\begin{axis}[
+xlabel={Step},
+ylabel={Top-1 accuracy},
+legend style={at={(0.96,0.25)}}
+]   
+    %HU
+    \addplot[
+    black,
+    ]
+    table [x=Step, y=Value, col sep = comma]
+    {contents/04_results/gameplay_simulation/data/cluster1_top1.csv};
+
+    
+    % HF
+    \addplot[
+    cyan,
+    ]
+    table [x=Step, y=Value, col sep = comma] {contents/04_results/gameplay_simulation/data/cluster2_top1.csv};
+    
+    \legend{Agent 1,Agent 2}
+    
+
+\end{axis}
+
+\end{tikzpicture}
+}

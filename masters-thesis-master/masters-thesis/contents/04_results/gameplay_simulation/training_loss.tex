@@ -1,0 +1,27 @@
+\resizebox{0.285\textwidth}{!}{%
+\begin{tikzpicture}[]
+
+\begin{axis}[
+xlabel={Step},
+ylabel={Batch loss}
+% scaled x ticks={real:28000},
+% xtick scale label code/.code={}
+]   
+    %HU
+    \addplot[
+    black,
+    ]
+    table [x=Step, y=Value, col sep = comma] {contents/04_results/gameplay_simulation/data/cluster1_loss.csv};
+    
+    % HF
+    \addplot[
+    cyan,
+    ]
+    table [x=Step, y=Value, col sep = comma] {contents/04_results/gameplay_simulation/data/cluster2_loss.csv};
+
+    \legend{Agent 1,Agent 2}
+
+\end{axis}
+
+\end{tikzpicture}
+}

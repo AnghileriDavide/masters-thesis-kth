@@ -1,0 +1,28 @@
+\resizebox{0.30\textwidth}{!}{%
+\begin{tikzpicture}[]
+
+\begin{axis}[
+xlabel={Step},
+ylabel={Top-3 accuracy},
+legend style={at={(0.96,0.25)}}
+% scaled x ticks={real:28000},
+% xtick scale label code/.code={}
+]   
+    %HU
+    \addplot[
+    black,
+    ]
+    table [x=Step, y=Value, col sep = comma] {contents/04_results/gameplay_simulation/data/cluster1_top3.csv};
+    
+    % HF
+    \addplot[
+    cyan,
+    ]
+    table [x=Step, y=Value, col sep = comma] {contents/04_results/gameplay_simulation/data/cluster2_top3.csv};
+
+    \legend{Agent 1,Agent 2}
+
+\end{axis}
+
+\end{tikzpicture}
+}
